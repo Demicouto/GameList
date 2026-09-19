@@ -90,6 +90,7 @@ function NavItem({ label, icon, active, onPress }: NavItemProps) {
 }
 
 function BottomNav({ bottomInset }: { bottomInset: number }) {
+  const router = useRouter();
   return (
     <View
       className="absolute bottom-0 left-0 right-0 flex-row items-center justify-around border-t border-white/5 bg-[#161A22] px-2 pt-3"
@@ -99,6 +100,7 @@ function BottomNav({ bottomInset }: { bottomInset: number }) {
       <NavItem label="Biblioteca" icon="library-outline" />
 
       <Pressable
+        onPress={() => router.push("/game/add")}
         className="-mt-8 h-14 w-14 items-center justify-center rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 active:opacity-85"
         accessibilityRole="button"
         accessibilityLabel="Adicionar jogo"

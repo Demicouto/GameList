@@ -16,6 +16,7 @@ type GamesContextValue = {
   games: Game[];
   stats: GameStats;
   addGame: (game: Game) => void;
+  updateGame: (id: string, changes: Partial<Omit<Game, "id">>) => void;
   setStatus: (id: string, status?: GameStatus) => void;
   toggleFavorite: (id: string) => void;
 };
@@ -49,9 +50,18 @@ export function GamesProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const updateGame = useCallback(
+    (id: string, changes: Partial<Omit<Game, "id">>) => {
+      setGames((prev) =>
+        prev.map((game) => (game.id === id ? { ...game, ...changes } : game)),
+      );
+    },
+    [],
+  );
+
   const value = useMemo(
-    () => ({ games, stats, addGame, setStatus, toggleFavorite }),
-    [games, stats, addGame, setStatus, toggleFavorite],
+    () => ({ games, stats, addGame, updateGame, setStatus, toggleFavorite }),
+    [games, stats, addGame, updateGame, setStatus, toggleFavorite],
   );
 
   return (

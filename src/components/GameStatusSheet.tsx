@@ -13,6 +13,11 @@ type Option = {
 
 const OPTIONS: Option[] = [
   {
+    key: "wishlist",
+    label: "Quero jogar",
+    icon: <Ionicons name="bookmark-outline" size={20} color="#C4B5FD" />,
+  },
+  {
     key: "playing",
     label: "Jogando",
     icon: <Ionicons name="game-controller-outline" size={20} color="#60A5FA" />,

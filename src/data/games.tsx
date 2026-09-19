@@ -1,21 +1,49 @@
 import type { ImageSource } from "expo-image";
 
-export type GamePlatform = "PS5" | "PS4" | "PC" | "Xbox";
-export type GameStatus = "playing" | "completed" | "paused";
+export type GamePlatform =
+  | "PS5"
+  | "PS4"
+  | "PC"
+  | "Xbox"
+  | "Xbox Series X|S"
+  | "Xbox One"
+  | "Switch"
+  | "Mobile";
+export type GameStatus = "playing" | "completed" | "paused" | "wishlist";
 
 export type Game = {
   id: string;
   title: string;
   developer: string;
+  genre?: string;
   platform: GamePlatform;
   status?: GameStatus;
   favorite?: boolean;
-  cover: ImageSource;
+  cover?: ImageSource;
+  publisher?: string;
+  tags?: string[];
+  award?: string;
+  rating?: number;
+  progress?: number;
+  hoursPlayed?: number;
+  achievements?: { unlocked: number; total: number; latest?: string };
 };
 
 export const GAMES: Game[] = [
   {
     id: "elden-ring",
+    genre: "RPG",
+    publisher: "Bandai Namco",
+    tags: ["RPG de Ação", "Mundo Aberto", "Soulsborne"],
+    award: "GotY 2022",
+    rating: 5,
+    progress: 80,
+    hoursPlayed: 52,
+    achievements: {
+      unlocked: 24,
+      total: 42,
+      latest: "Lorde Prístino da Térvore",
+    },
     title: "Elden Ring",
     developer: "FromSoftware",
     platform: "PS5",

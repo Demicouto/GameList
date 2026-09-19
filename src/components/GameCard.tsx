@@ -8,6 +8,10 @@ type BadgeKey = GameStatus | "favorite";
 type BadgeConfig = { box: string; icon: ReactNode };
 
 const STATUS_BADGE: Record<BadgeKey, BadgeConfig> = {
+  wishlist: {
+    box: "bg-[#252C3C]/90",
+    icon: <Ionicons name="bookmark-outline" size={18} color="#C4B5FD" />,
+  },
   playing: {
     box: "bg-[#12233A]/90",
     icon: <Ionicons name="game-controller-outline" size={18} color="#60A5FA" />,
@@ -61,12 +65,22 @@ export function GameCard({
         style={{ width, aspectRatio: 3 / 4 }}
         className="overflow-hidden rounded-3xl bg-[#1C2029]"
       >
-        <Image
-          source={game.cover}
-          contentFit="cover"
-          style={{ width: "100%", height: "100%" }}
-          accessible={false}
-        />
+        {game.cover ? (
+          <Image
+            source={game.cover}
+            contentFit="cover"
+            style={{ width: "100%", height: "100%" }}
+            accessible={false}
+          />
+        ) : (
+          <View className="flex-1 items-center justify-center">
+            <Ionicons
+              name="game-controller-outline"
+              size={44}
+              color="#454E60"
+            />
+          </View>
+        )}
 
         <View
           style={{
@@ -106,7 +120,7 @@ export function GameCard({
         {game.title}
       </Text>
       <Text numberOfLines={1} className="mt-0.5 text-sm text-[#9CA3AF]">
-        {game.developer}
+        {game.developer || game.genre}
       </Text>
     </Pressable>
   );
