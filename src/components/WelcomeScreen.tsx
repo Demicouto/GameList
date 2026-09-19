@@ -1,11 +1,14 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
-const HERO_IMAGE = require('../../assets/welcomepage.svg');
+const HERO_IMAGE = require("../../assets/welcomepage.svg");
 
 type WelcomeScreenProps = {
   onLoginPress?: () => void;
@@ -25,9 +28,7 @@ export function WelcomeScreen({
     <View className="flex-1 bg-[#0B0F17]">
       <StatusBar style="light" />
 
-      <View
-        className="flex-1"
-      >
+      <View className="flex-1">
         <Image
           source={HERO_IMAGE}
           contentFit="cover"
@@ -37,22 +38,22 @@ export function WelcomeScreen({
         />
         <LinearGradient
           pointerEvents="none"
-          colors={['rgba(11, 15, 23, 0.58)', 'transparent']}
+          colors={["rgba(11, 15, 23, 0.58)", "transparent"]}
           style={styles.topGradient}
         />
         <LinearGradient
           pointerEvents="none"
           colors={[
-            'transparent',
-            'rgba(11, 15, 23, 0.68)',
-            'rgba(11, 15, 23, 0.96)',
-            '#0B0F17',
+            "transparent",
+            "rgba(11, 15, 23, 0.68)",
+            "rgba(11, 15, 23, 0.96)",
+            "#0B0F17",
           ]}
           locations={[0, 0.4, 0.76, 1]}
           style={styles.bottomGradient}
         />
 
-        <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
+        <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
           <View className="mx-auto flex-1 w-full max-w-[480px] justify-between px-6 pt-4 android:pt-8 md:px-12">
             <View>
               <View className="mb-2">
@@ -71,10 +72,10 @@ export function WelcomeScreen({
 
             <View
               className="w-full gap-3"
-              style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+              style={{ paddingBottom: Math.max(insets.bottom, 16) + 50 }}
             >
               <Pressable
-                onPress={onLoginPress ?? (() => router.push('/login'))}
+                onPress={onLoginPress ?? (() => router.push("/login"))}
                 className="h-[54px] w-full items-center justify-center rounded-full bg-slate-50 shadow-lg active:opacity-85"
                 accessibilityRole="button"
                 accessibilityLabel="Entrar na sua conta"
@@ -85,7 +86,7 @@ export function WelcomeScreen({
               </Pressable>
 
               <Pressable
-                onPress={onRegisterPress ?? (() => router.push('/register'))}
+                onPress={onRegisterPress ?? (() => router.push("/register"))}
                 className="h-[54px] w-full items-center justify-center rounded-full border border-white/10 bg-[#181C26]/95 active:opacity-85"
                 accessibilityRole="button"
                 accessibilityLabel="Criar uma nova conta"
@@ -93,15 +94,6 @@ export function WelcomeScreen({
                 <Text className="text-base font-semibold tracking-[-0.2px] text-white">
                   Criar conta
                 </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={onGuestPress ?? (() => router.replace('/home'))}
-                className="mt-1 items-center py-2 active:opacity-70"
-                accessibilityRole="button"
-                accessibilityLabel="Continuar sem entrar"
-              >
-                <Text className="text-sm text-slate-400">Continue jogando.</Text>
               </Pressable>
             </View>
           </View>
@@ -113,7 +105,7 @@ export function WelcomeScreen({
 
 const styles = StyleSheet.create({
   backgroundImage: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     right: 0,
     bottom: 0,
@@ -123,18 +115,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topGradient: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     right: 0,
     left: 0,
-    height: '28%',
+    height: "28%",
   },
   bottomGradient: {
-    position: 'absolute',
+    position: "absolute",
     right: 0,
     bottom: 0,
     left: 0,
-    height: '68%',
+    height: "68%",
   },
 });
 
