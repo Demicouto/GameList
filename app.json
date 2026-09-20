@@ -26,7 +26,15 @@
       "expo-router",
       "expo-status-bar",
       "expo-image",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permita que o GameList acesse suas fotos para escolher a capa do jogo.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "scheme": "gamelist"
   }
