@@ -98,7 +98,7 @@ function BottomNav({ bottomInset }: { bottomInset: number }) {
       style={{ paddingBottom: Math.max(bottomInset, 12) }}
     >
       <NavItem label="Início" icon="home" active />
-      <NavItem label="Biblioteca" icon="library-outline" />
+      <NavItem label="Biblioteca" icon="library-outline" onPress={() => router.push("/library")} />
 
       <Pressable
         onPress={() => router.push("/game/add")}
