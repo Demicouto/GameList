@@ -51,12 +51,14 @@ Cada teste abaixo deve ser escrito e executado ANTES do comportamento correspond
 
 **Interfaces:** `PasswordService.hash(password: string): Promise<string>`; `verify(password: string, hash: string): Promise<boolean>`; `isBcryptHash(hash: string): boolean`; constraint `MaxPasswordBytes` limita a 72 bytes UTF-8. Cadastro exige 8 caracteres no DTO; login exige senha não vazia.
 
-- [ ] Ler `test-driven-development`, `systematic-debugging` quando necessário e `using-git-worktrees`; preparar isolamento por repositório para execução. Revalidar instruções/status e manter os artefatos aprovados acessíveis no worktree escolhido.
-- [ ] Instalar `bcrypt@6.0.0` e `@types/bcrypt@6.0.0` com os motivos do spec; executar apenas testes unitários existentes: `npm test -- --runInBand`. Não executar o e2e original com AppModule antes da tarefa 4.
-- [ ] Se o teste PrismaService falhar por DI, registrar a falha e diagnosticar; testar construção/lifecycle com ConfigService de teste e métodos de conexão substituídos, sem abrir conexão real. Corrigir apenas a infraestrutura identificada.
-- [ ] Escrever testes do limite de bytes: 72 ASCII aceitos, 73 rejeitados, 18 emojis de 4 bytes aceitos e 19 rejeitados. Executar `npm test -- --runInBand password-bytes.validator.spec.ts`, observar RED e implementar a constraint.
-- [ ] Escrever testes bcrypt com senha de teste sintética: `expect(hash).not.toBe(password)`; `expect(getRounds(hash)).toBe(12)`; dois hashes da mesma senha diferentes; senha correta retorna true, errada retorna false; formato não bcrypt retorna false sem comparar texto puro. Rodar o arquivo e observar RED antes de cada comportamento; implementar API assíncrona.
-- [ ] Executar `npm test -- --runInBand password.service.spec.ts password-bytes.validator.spec.ts` até GREEN; confirmar carregamento nativo bcrypt no Node/Windows atual. Commit apenas dos arquivos desta tarefa no backend.
+- [x] Ler `test-driven-development`, `systematic-debugging` quando necessário e `using-git-worktrees`; preparar isolamento por repositório para execução. Revalidar instruções/status e manter os artefatos aprovados acessíveis no worktree escolhido.
+- [x] Instalar `bcrypt@6.0.0` e `@types/bcrypt@6.0.0` com os motivos do spec; executar apenas testes unitários existentes: `npm test -- --runInBand`. Não executar o e2e original com AppModule antes da tarefa 4.
+- [x] Se o teste PrismaService falhar por DI, registrar a falha e diagnosticar; testar construção/lifecycle com ConfigService de teste e métodos de conexão substituídos, sem abrir conexão real. Corrigir apenas a infraestrutura identificada.
+- [x] Escrever testes do limite de bytes: 72 ASCII aceitos, 73 rejeitados, 18 emojis de 4 bytes aceitos e 19 rejeitados. Executar `npm test -- --runInBand password-bytes.validator.spec.ts`, observar RED e implementar a constraint.
+- [x] Escrever testes bcrypt com senha de teste sintética: `expect(hash).not.toBe(password)`; `expect(getRounds(hash)).toBe(12)`; dois hashes da mesma senha diferentes; senha correta retorna true, errada retorna false; formato não bcrypt retorna false sem comparar texto puro. Rodar o arquivo e observar RED antes de cada comportamento; implementar API assíncrona.
+- [x] Executar `npm test -- --runInBand password.service.spec.ts password-bytes.validator.spec.ts` até GREEN; confirmar carregamento nativo bcrypt no Node/Windows atual. Commit apenas dos arquivos desta tarefa no backend.
+
+**Resultado da tarefa 1:** concluída por TDD em 2026-10-17 e integrada por fast-forward local em `feat/auth`. Commits backend: `1fa2f8d` (isolamento), `050984b` (serviço/validação/testes) e `df47c6a` (exclusão de worktrees da descoberta Jest). A investigação também exigiu ajuste de resolução `.js` em `B/jest.config.ts`. Suíte: 4 arquivos/31 testes; foco: 27 testes; typecheck e build com exit 0. Evidências sanitizadas: `B/docs/superpowers/verification/2026-10-17-task-1.md`. Tarefas 2–10 permanecem pendentes; o usuário limitou esta execução à tarefa 1.
 
 ### Tarefa 2: Schema aditivo, seed e conversão legada preservando dados
 
@@ -171,7 +173,7 @@ Cada teste abaixo deve ser escrito e executado ANTES do comportamento correspond
 
 - [x] Desenho aprovado pelo usuário, incorporando bcrypt e ausência de JWT.
 - [x] Especificação e plano escritos para revisão; autoverificação de cobertura, tipos e cenários de falha.
-- [ ] Plano aprovado pelo usuário.
+- [x] Plano aprovado pelo usuário.
 - [ ] Implementação autorizada após essa aprovação e executada por TDD.
 
-O Docker local estava parado na inspeção. Nenhuma suíte, migration, seed ou conversão de dados foi executada nesta fase de planejamento. Nenhum código de produto foi alterado.
+O Docker local estava parado na inspeção. Na fase inicial de planejamento não foram executados testes nem alterações de produto. Após a aprovação, somente a tarefa 1 foi implementada e verificada conforme o resultado acima; nenhuma migration, seed ou conversão de dados foi executada.
