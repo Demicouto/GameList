@@ -20,6 +20,7 @@ import {
 import { GameCard } from "../../components/GameCard";
 import { GameStatusSheet } from "../../components/GameStatusSheet";
 import { useGames } from "../../context/GamesContext";
+import { useAuth } from "../../context/AuthContext";
 import type { StatKey } from "../../context/GamesContext";
 import { ACHIEVEMENTS, FEATURED } from "../../data/games";
 
@@ -109,7 +110,7 @@ function BottomNav({ bottomInset }: { bottomInset: number }) {
       </Pressable>
 
       <NavItem label="Descobrir" icon="compass-outline" />
-      <NavItem label="Perfil" icon="person-circle-outline" />
+      <NavItem label="Perfil" icon="person-circle-outline" onPress={() => router.push('/profile')} />
     </View>
   );
 }
@@ -120,6 +121,7 @@ export function HomeScreen() {
   const [tab, setTab] = useState("Resumo");
 
   const { games, stats } = useGames();
+  const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   return (
@@ -134,7 +136,7 @@ export function HomeScreen() {
           <View className="flex-row items-start justify-between px-5 pt-4">
             <View>
               <Text className="text-[32px] font-extrabold tracking-[-0.5px] text-[#E5E7EB]">
-                Olá, Demétrio
+                Olá, {user?.name}
               </Text>
               <Text className="mt-0.5 text-base text-[#9CA3AF]">
                 Pronto para jogar hoje?
