@@ -28,6 +28,10 @@
       "expo-image",
       "expo-font",
       [
+        "expo-secure-store",
+        { "configureAndroidBackup": true }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Permita que o GameList acesse suas fotos para escolher a capa do jogo.",
