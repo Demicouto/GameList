@@ -154,7 +154,7 @@ export function LoginScreen() {
             <View className="mx-auto w-full max-w-[480px] flex-1 justify-between">
               <View>
                 <Pressable
-                  onPress={() => router.back()}
+                  onPress={() => router.canGoBack() ? router.back() : router.replace("/")}
                   className="h-11 w-11 items-center justify-center rounded-full border border-[#252C3C] bg-[#181D28] active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Voltar"

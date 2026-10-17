@@ -50,7 +50,7 @@ export function GamesScreen() {
           ListHeaderComponent={
             <View className="mb-2">
               <Pressable
-                onPress={() => router.back()}
+                onPress={() => router.canGoBack() ? router.back() : router.replace("/home")}
                 className="h-11 w-11 items-center justify-center rounded-full border border-[#252C3C] bg-[#181D28] active:opacity-80"
                 accessibilityRole="button"
                 accessibilityLabel="Voltar"
