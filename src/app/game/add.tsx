@@ -164,8 +164,8 @@ export default function AddGameScreen() {
       if (router.canGoBack()) router.back();
       else
         router.replace({
-          pathname: "/game/[id]",
-          params: { id: existingGame.id },
+          pathname: "/game/[gamesid]",
+          params: { gamesid: existingGame.id },
         });
       return;
     }

@@ -71,7 +71,10 @@ export function GamesScreen() {
               game={item}
               width={cardWidth}
               onPress={() =>
-                router.push({ pathname: "/game/[id]", params: { id: item.id } })
+                router.push({
+                  pathname: "/game/[gamesid]",
+                  params: { gamesid: item.id },
+                })
               }
               onBadgePress={() => setSelectedId(item.id)}
             />

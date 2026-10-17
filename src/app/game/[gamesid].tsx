@@ -21,11 +21,11 @@ const STATUSES: SelectOption<GameStatus | "none">[] = [
 ];
 
 export default function GamePage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { gamesid } = useLocalSearchParams<{ gamesid: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { games, updateGame, setStatus, toggleFavorite } = useGames();
-  const game = games.find((item) => item.id === id);
+  const game = games.find((item) => item.id === gamesid);
   const goBack = () =>
     router.canGoBack() ? router.back() : router.replace("/games");
 

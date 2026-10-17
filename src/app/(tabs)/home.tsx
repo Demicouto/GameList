@@ -285,8 +285,8 @@ export function HomeScreen() {
                 width={128}
                 onPress={() =>
                   router.push({
-                    pathname: "/game/[id]",
-                    params: { id: item.id },
+                    pathname: "/game/[gamesid]",
+                    params: { gamesid: item.id },
                   })
                 }
                 onBadgePress={() => setSelectedId(item.id)}
