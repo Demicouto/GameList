@@ -3,22 +3,24 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export type SelectOption<T extends string> = { value: T; label: string };
+export type SelectOption<T extends string | number> = { value: T; label: string };
 
-type SelectFieldProps<T extends string> = {
+type SelectFieldProps<T extends string | number> = {
   label: string;
   value: T | "";
   options: SelectOption<T>[];
   onChange: (value: T) => void;
   error?: string;
+  disabled?: boolean;
 };
 
-export function SelectField<T extends string>({
+export function SelectField<T extends string | number>({
   label,
   value,
   options,
   onChange,
   error,
+  disabled = false,
 }: SelectFieldProps<T>) {
   const [open, setOpen] = useState(false);
   const insets = useSafeAreaInsets();
@@ -28,10 +30,11 @@ export function SelectField<T extends string>({
     <View className="gap-1.5">
       <Text className="text-xs text-[#ADB7C8]">{label}</Text>
       <Pressable
+        disabled={disabled}
         onPress={() => setOpen(true)}
         accessibilityRole="button"
         accessibilityLabel={`${label}: ${selected?.label ?? "Selecione"}`}
-        accessibilityState={{ expanded: open }}
+        accessibilityState={{ expanded: open, disabled }}
         className={`min-h-[50px] flex-row items-center rounded-xl border bg-[#131824] px-3.5 py-3 active:opacity-80 ${error ? "border-red-400" : "border-[#1E2536]"}`}
       >
         <Text

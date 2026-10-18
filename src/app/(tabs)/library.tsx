@@ -8,7 +8,8 @@ import { GameCard } from "../../components/GameCard";
 import { GameStatusSheet } from "../../components/GameStatusSheet";
 import SearchBar from "../../components/SearchBar";
 import { useGames } from "../../context/GamesContext";
-import type { GameStatus } from "../../data/games";
+import type { GameStatus } from "../../types/game";
+import { GamesFeedback } from "../../components/GamesFeedback";
 
 type LibraryFilter = "all" | "favorites" | GameStatus;
 
@@ -33,7 +34,7 @@ export default function LibraryPage() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { games } = useGames();
+  const { games, loading, error, warning, reload } = useGames();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<LibraryFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -103,8 +104,9 @@ export default function LibraryPage() {
                 Minha biblioteca
               </Text>
               <Text className="mb-6 mt-1 text-base text-[#9CA3AF]">
-                {games.length} {games.length === 1 ? "jogo" : "jogos"} na biblioteca
+                {loading || error ? "Sua coleção de jogos" : `${games.length} ${games.length === 1 ? "jogo" : "jogos"} na biblioteca`}
               </Text>
+              {(games.length > 0 || (!loading && !error)) && (loading || error || warning) && <GamesFeedback loading={loading} error={error} warning={warning} retry={() => void reload()} />}
 
               <SearchBar value={query} onChangeText={setQuery} />
 
@@ -142,6 +144,7 @@ export default function LibraryPage() {
             </View>
           }
           ListEmptyComponent={
+            loading || error ? <GamesFeedback loading={loading} error={error} warning={warning} retry={() => void reload()} /> :
             <View className="items-center px-3 py-12">
               <View className="mb-5 h-20 w-20 items-center justify-center rounded-3xl border border-[#252C3C] bg-[#181D28]">
                 <Ionicons name={isEmptyLibrary ? "library-outline" : "search-outline"} size={34} color="#60A5FA" accessible={false} />

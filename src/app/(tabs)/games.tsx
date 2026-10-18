@@ -15,6 +15,7 @@ import {
 } from "react-native-safe-area-context";
 import { GameCard } from "../../components/GameCard";
 import { GameStatusSheet } from "../../components/GameStatusSheet";
+import { GamesFeedback } from "../../components/GamesFeedback";
 import { useGames } from "../../context/GamesContext";
 
 const PADDING = 20;
@@ -25,7 +26,7 @@ export function GamesScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
-  const { games } = useGames();
+  const { games, loading, error, warning, reload } = useGames();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const cardWidth = (width - PADDING * 2 - GAP) / 2;
@@ -62,10 +63,12 @@ export function GamesScreen() {
                 Meus jogos
               </Text>
               <Text className="mt-1 text-base text-[#9CA3AF]">
-                {games.length} jogos na sua biblioteca
+                {loading || error ? "Sua coleção de jogos" : `${games.length} jogos na sua biblioteca`}
               </Text>
+              {games.length > 0 && (loading || error || warning) && <GamesFeedback loading={loading} error={error} warning={warning} retry={() => void reload()} />}
             </View>
           }
+          ListEmptyComponent={<GamesFeedback loading={loading} error={error} warning={warning} empty retry={() => void reload()} onAdd={() => router.push("/game/add")} />}
           renderItem={({ item }) => (
             <GameCard
               game={item}
