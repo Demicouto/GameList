@@ -9,6 +9,7 @@ import { GameCard } from "../../components/GameCard";
 import { GameCover } from "../../components/GameCover";
 import { GameStatusSheet } from "../../components/GameStatusSheet";
 import { GamesFeedback } from "../../components/GamesFeedback";
+import { AddGameSheet } from "../../components/AddGameSheet";
 import { useGames, type StatKey } from "../../context/GamesContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -25,6 +26,7 @@ export function HomeScreen() {
   const { user } = useAuth();
   const { games, stats, loading, error, warning, reload } = useGames();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [addingGame, setAddingGame] = useState(false);
   const featured = games.find(game => game.status === "playing") ?? games[0];
   return (
     <View className="flex-1 bg-[#111318]">
@@ -83,12 +85,13 @@ export function HomeScreen() {
       <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-around border-t border-white/5 bg-[#161A22] px-2 pt-3" style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
         <NavItem label="Início" icon="home" active onPress={() => router.replace("/home")} />
         <NavItem label="Biblioteca" icon="library-outline" onPress={() => router.push("/library")} />
-        <Pressable onPress={() => router.push("/game/add")} accessibilityRole="button" accessibilityLabel="Adicionar jogo"
+        <Pressable onPress={() => setAddingGame(true)} accessibilityRole="button" accessibilityLabel="Adicionar jogo"
           className="-mt-8 h-14 w-14 items-center justify-center rounded-full bg-blue-500 active:opacity-85"><Ionicons name="add" size={30} color="#FFFFFF" /></Pressable>
         <NavItem label="Descobrir" icon="compass-outline" onPress={() => router.push("/search")} />
         <NavItem label="Perfil" icon="person-circle-outline" onPress={() => router.push("/profile")} />
       </View>
       <GameStatusSheet gameId={selectedId} onClose={() => setSelectedId(null)} />
+      {addingGame && <AddGameSheet onClose={() => setAddingGame(false)} />}
     </View>
   );
 }

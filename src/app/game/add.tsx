@@ -26,6 +26,7 @@ import { useLibraryGame } from "../../hooks/useLibraryGame";
 import { GamesFeedback } from "../../components/GamesFeedback";
 import { ApiError } from "../../services/api";
 import { isLocalCoverUri } from "../../services/local-covers";
+import { findGamePreset, type GamePreset } from "../../data/game-presets";
 
 const COVER_MIME_TYPES = [
   "image/svg+xml",
@@ -53,7 +54,7 @@ const STATUSES: SelectOption<GameStatus | "none">[] = [
 ];
 
 export default function AddGameScreen() {
-  const { editId } = useLocalSearchParams<{ editId?: string }>();
+  const { editId, presetId } = useLocalSearchParams<{ editId?: string; presetId?: string }>();
   const { loading, error, reload, revision } = useGames();
   const record = useLibraryGame(editId);
   if (loading || error || editId && (record.loading || record.error || !record.game)) {
@@ -62,23 +63,27 @@ export default function AddGameScreen() {
       {editId && record.missing && <Text className="text-center text-base text-white">Jogo não encontrado</Text>}
     </SafeAreaView>;
   }
-  return <GameForm key={`${revision}:${editId ?? "new"}`} existingGame={record.game} />;
+  const preset = editId ? undefined : findGamePreset(presetId);
+  return <GameForm key={`${revision}:${editId ?? preset?.id ?? "new"}`} existingGame={record.game} preset={preset} />;
 }
 
-function GameForm({ existingGame }: { existingGame?: Game }) {
+function GameForm({ existingGame, preset }: { existingGame?: Game; preset?: GamePreset }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { platforms, addGame, updateGame, warning, reload } = useGames();
-  const [name, setName] = useState(existingGame?.title ?? "");
+  const [name, setName] = useState(existingGame?.title ?? preset?.title ?? "");
   const [platform, setPlatform] = useState<number | "">(
     existingGame?.platformId ?? "",
   );
-  const [genre, setGenre] = useState(existingGame?.genre ?? "");
+  const [genre, setGenre] = useState(existingGame?.genre ?? preset?.genre ?? "");
   const [status, setStatus] = useState<GameStatus | "none">(
     existingGame ? (existingGame.status ?? "none") : "wishlist",
   );
   const [cover, setCover] = useState<ImageSource | undefined>(
-    existingGame?.cover,
+    existingGame?.cover ?? preset?.cover,
+  );
+  const [coverReference, setCoverReference] = useState<string | null | undefined>(
+    existingGame?.localCoverReference ?? (preset ? `preset:${preset.id}` : undefined),
   );
   const [coverMenu, setCoverMenu] = useState(false);
   const [coverError, setCoverError] = useState("");
@@ -110,6 +115,7 @@ function GameForm({ existingGame }: { existingGame?: Game }) {
       return;
     }
     setCover({ uri });
+    setCoverReference(uri);
   }
 
   async function pickCoverFile() {
@@ -160,8 +166,9 @@ function GameForm({ existingGame }: { existingGame?: Game }) {
     saving.current = true;
     setBusy(true); setError(null);
     const uri = typeof cover === "string" ? cover : cover?.uri;
-    const localCover = uri && isLocalCoverUri(uri) ? uri : cover ? undefined : null;
+    const localCover = coverReference !== undefined ? coverReference : uri && isLocalCoverUri(uri) ? uri : cover ? undefined : null;
     const data = { title: name.trim(), platformId: platform, genre: genre || null,
+      ...(preset ? { developer: preset.developer } : {}),
       status: status === "none" ? null : status, localCover,
       ...(!cover ? { coverUrl: null } : {}) };
     try {
@@ -210,6 +217,8 @@ function GameForm({ existingGame }: { existingGame?: Game }) {
                 ? "Atualize as informações do seu jogo."
                 : "Registre um novo jogo na sua biblioteca."}
             </Text>
+
+            {preset && <Text className="mt-3 text-sm text-sky-400">Predefinido: {preset.title} · {preset.developer}. Escolha a plataforma antes de salvar.</Text>}
 
             <Pressable
               onPress={() => setCoverMenu(true)}
@@ -387,6 +396,7 @@ function GameForm({ existingGame }: { existingGame?: Game }) {
               <Pressable
                 onPress={() => {
                   setCover(undefined);
+                  setCoverReference(null);
                   setCoverMenu(false);
                 }}
                 accessibilityRole="button"

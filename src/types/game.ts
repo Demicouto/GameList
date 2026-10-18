@@ -23,6 +23,7 @@ export type Game = Omit<ApiGame, "status" | "platform"> & {
   platform: string;
   status: GameStatus | null;
   cover?: ImageSource;
+  localCoverReference?: string;
 };
 
 export type GameMetadataInput = {

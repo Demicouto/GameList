@@ -4,17 +4,19 @@ import { Pressable, TextInput, View } from "react-native";
 type SearchBarProps = {
   value: string;
   onChangeText: (value: string) => void;
+  placeholder?: string;
+  accessibilityLabel?: string;
 };
 
-export default function SearchBar({ value, onChangeText }: SearchBarProps) {
+export default function SearchBar({ value, onChangeText, placeholder = "Buscar pelo título…", accessibilityLabel = "Buscar jogos" }: SearchBarProps) {
   return (
     <View className="h-[54px] flex-row items-center rounded-2xl border border-[#252C3C] bg-[#141822] px-4">
       <Ionicons name="search-outline" size={21} color="#9CA3AF" accessible={false} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder="Buscar pelo título…"
-        accessibilityLabel="Buscar jogos"
+        placeholder={placeholder}
+        accessibilityLabel={accessibilityLabel}
         placeholderTextColor="#6B7280"
         selectionColor="#3B82F6"
         autoCapitalize="none"

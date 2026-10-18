@@ -1,6 +1,8 @@
 import { ApiError } from "./api";
 import type { GamesApi } from "./games-api";
 import type { LocalCovers } from "./local-covers";
+import { resolveLocalCover } from "./local-covers";
+import { findPresetForGame } from "../data/game-presets";
 import type { CreateGameInput, Game, GamePlatform, GameStatus, UpdateGameInput } from "../types/game";
 
 export type GamesState = {
@@ -79,6 +81,9 @@ export class GamesStore {
   };
 
   addGame = (input: CreateGameInput, revision: number): Promise<Game> => this.mutate("create", revision, async () => {
+    if (this.state.games.some(game => game.platformId === input.platformId && game.title.trim().toLowerCase() === input.title.trim().toLowerCase())) {
+      throw new ApiError(409, "Este jogo já está na sua biblioteca nesta plataforma.");
+    }
     const { localCover, ...data } = input;
     const game = await this.api.create(data, this.controller.signal);
     return this.save(game, localCover, revision);
@@ -125,9 +130,9 @@ export class GamesStore {
     let covered: Game;
     if (uri === undefined) covered = await this.overlay(game, revision);
     else {
-      try { if (uri === null) await this.covers.remove(ownerId, game.id); else await this.covers.write(ownerId, game.id, uri); }
+      try { await this.covers.write(ownerId, game.id, uri === null ? "none" : uri); }
       catch { if (this.current(revision)) this.update({ warning: "O jogo foi salvo, mas a capa local não pôde ser mantida. Selecione a imagem novamente para tentar salvar a capa." }); }
-      covered = uri ? { ...game, cover: { uri } } : game;
+      covered = uri ? { ...game, cover: resolveLocalCover(uri), localCoverReference: uri } : game;
     }
     this.assertCurrent(revision); this.upsert(covered); return covered;
   }
@@ -136,11 +141,16 @@ export class GamesStore {
     const ownerId = this.state.ownerId!;
     try {
       const uri = await this.covers.read(ownerId, game.id);
-      return uri ? { ...game, cover: { uri } } : game;
+      if (uri === "none") return game;
+      return uri ? { ...game, cover: resolveLocalCover(uri), localCoverReference: uri } : this.presetCover(game);
     } catch {
       if (this.current(revision)) this.update({ warning: "Não foi possível carregar algumas capas deste dispositivo." });
-      return game;
+      return this.presetCover(game);
     }
+  }
+  private presetCover(game: Game): Game {
+    const preset = game.coverUrl ? undefined : findPresetForGame(game);
+    return preset ? { ...game, cover: preset.cover, localCoverReference: `preset:${preset.id}` } : game;
   }
   private upsert(game: Game) {
     const exists = this.state.games.some(item => item.id === game.id);
