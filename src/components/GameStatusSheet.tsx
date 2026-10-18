@@ -1,12 +1,13 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGames } from "../context/GamesContext";
-import type { GameStatus } from "../data/games";
+import type { GameStatus } from "../types/game";
+import { ApiError } from "../services/api";
 
 type Option = {
-  key: GameStatus | undefined;
+  key: GameStatus | null;
   label: string;
   icon: ReactNode;
 };
@@ -39,7 +40,7 @@ const OPTIONS: Option[] = [
     icon: <Ionicons name="pause-circle-outline" size={20} color="#FBBF24" />,
   },
   {
-    key: undefined,
+    key: null,
     label: "Sem status",
     icon: <Ionicons name="remove-circle-outline" size={20} color="#9CA3AF" />,
   },
@@ -51,9 +52,24 @@ type GameStatusSheetProps = {
 };
 
 export function GameStatusSheet({ gameId, onClose }: GameStatusSheetProps) {
+  const { revision } = useGames();
+  return <StatusSheet key={`${revision}:${gameId}`} gameId={gameId} onClose={onClose} />;
+}
+
+function StatusSheet({ gameId, onClose }: GameStatusSheetProps) {
   const insets = useSafeAreaInsets();
   const { games, setStatus, toggleFavorite } = useGames();
   const game = games.find((g) => g.id === gameId);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const pending = useRef(false);
+  async function run(action: () => Promise<unknown>) {
+    if (pending.current) return;
+    pending.current = true; setBusy(true); setError(null);
+    try { await action(); }
+    catch (failure) { setError(failure instanceof ApiError ? failure.message : "Não foi possível alterar o jogo. Tente novamente."); }
+    finally { pending.current = false; setBusy(false); }
+  }
 
   return (
     <Modal
@@ -88,14 +104,15 @@ export function GameStatusSheet({ gameId, onClose }: GameStatusSheetProps) {
               return (
                 <Pressable
                   key={option.label}
-                  onPress={() => setStatus(game.id, option.key)}
+                  onPress={() => void run(() => setStatus(game.id, option.key))}
+                  disabled={busy}
                   className={`mb-2 h-[52px] flex-row items-center rounded-2xl border px-4 active:opacity-80 ${
                     selected
                       ? "border-blue-500 bg-blue-500/10"
                       : "border-[#252C3C] bg-[#181D28]"
                   }`}
                   accessibilityRole="button"
-                  accessibilityState={{ selected }}
+                  accessibilityState={{ selected, disabled: busy, busy }}
                 >
                   {option.icon}
                   <Text className="ml-3 flex-1 text-base font-medium text-[#E5E7EB]">
@@ -109,10 +126,11 @@ export function GameStatusSheet({ gameId, onClose }: GameStatusSheetProps) {
             })}
 
             <Pressable
-              onPress={() => toggleFavorite(game.id)}
+              onPress={() => void run(() => toggleFavorite(game.id))}
+              disabled={busy}
               className="mt-1 h-[52px] flex-row items-center rounded-2xl border border-[#252C3C] bg-[#181D28] px-4 active:opacity-80"
               accessibilityRole="button"
-              accessibilityState={{ selected: !!game.favorite }}
+              accessibilityState={{ selected: !!game.favorite, disabled: busy, busy }}
             >
               <Ionicons
                 name={game.favorite ? "heart" : "heart-outline"}
@@ -126,6 +144,7 @@ export function GameStatusSheet({ gameId, onClose }: GameStatusSheetProps) {
               </Text>
             </Pressable>
 
+            {error && <Text accessibilityRole="alert" className="mt-3 text-sm text-red-400">{error}</Text>}
             <Pressable
               onPress={onClose}
               className="mt-4 h-[52px] items-center justify-center rounded-full bg-blue-600 active:opacity-85"

@@ -1,7 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { ApiError } from "../../services/api";
+import { validateRegistration } from "../../auth/password-policy";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -38,7 +41,7 @@ function getPasswordStrength(password: string) {
   if (!password) return 0;
 
   const checks = [
-    password.length >= 8,
+    Array.from(password).length >= 8,
     /[a-z]/.test(password) && /[A-Z]/.test(password),
     /\d/.test(password),
     /[^A-Za-z0-9]/.test(password),
@@ -49,11 +52,12 @@ function getPasswordStrength(password: string) {
 
 type FieldProps = TextInputProps & {
   label: string;
+  error?: string;
   prefix?: string;
   right?: React.ReactNode;
 };
 
-function Field({ label, prefix, right, ...inputProps }: FieldProps) {
+function Field({ label, error, prefix, right, ...inputProps }: FieldProps) {
   return (
     <View className="mb-5">
       <Text className="mb-2 text-[15px] font-semibold text-[#E5E7EB]">
@@ -64,6 +68,7 @@ function Field({ label, prefix, right, ...inputProps }: FieldProps) {
           <Text className="mr-1.5 text-base text-[#6B7280]">{prefix}</Text>
         ) : null}
         <TextInput
+          accessibilityLabel={label}
           {...inputProps}
           placeholderTextColor={PLACEHOLDER}
           selectionColor="#2563EB"
@@ -71,6 +76,7 @@ function Field({ label, prefix, right, ...inputProps }: FieldProps) {
         />
         {right}
       </View>
+      {error && <Text accessibilityRole="alert" className="mt-2 text-sm text-red-400">{error}</Text>}
     </View>
   );
 }
@@ -78,6 +84,7 @@ function Field({ label, prefix, right, ...inputProps }: FieldProps) {
 export function RegisterScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const auth = useAuth();
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -86,22 +93,33 @@ export function RegisterScreen() {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [accepted, setAccepted] = useState(true);
+  const [accepted, setAccepted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<ReturnType<typeof validateRegistration>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const pending = useRef(false);
 
   const strength = useMemo(() => getPasswordStrength(password), [password]);
   const passwordsMatch = confirm.length === 0 || password === confirm;
 
-  const canSubmit =
-    name.trim() &&
-    username.trim() &&
-    email.trim() &&
-    password.length >= 8 &&
-    password === confirm &&
-    accepted;
+  const canSubmit = !submitting;
 
-  function handleSubmit() {
-    if (!canSubmit) return;
-    router.replace("/login");
+  async function handleSubmit() {
+    if (pending.current) return;
+    setError(null);
+    const errors = validateRegistration({ name, username, email, password, confirm, accepted });
+    setErrors(errors);
+    if (Object.keys(errors).length) return;
+    pending.current = true;
+    setSubmitting(true);
+    try {
+      await auth.register({ name: name.trim(), username: username.trim().toLowerCase(), email: email.trim().toLowerCase(), password });
+      setPassword(''); setConfirm('');
+      router.replace({ pathname: '/login', params: { registered: '1' } });
+    } catch (error) {
+      setError(error instanceof ApiError ? error.message : 'Não foi possível criar a conta. Tente novamente.');
+    } finally { pending.current = false; setSubmitting(false); }
   }
 
   return (
@@ -124,7 +142,7 @@ export function RegisterScreen() {
           >
             <View className="mx-auto w-full max-w-[480px]">
               <Pressable
-                onPress={() => router.back()}
+                onPress={() => router.canGoBack() ? router.back() : router.replace("/")}
                 className="h-11 w-11 items-center justify-center rounded-full border border-[#252C3C] bg-[#181D28] active:opacity-80"
                 accessibilityRole="button"
                 accessibilityLabel="Voltar"
@@ -140,6 +158,7 @@ export function RegisterScreen() {
               </Text>
 
               <Pressable
+                onPress={() => setNotice('Upload de avatar ainda não disponível.')}
                 className="mb-7 flex-row items-center rounded-3xl border border-[#212738] bg-[#141822]/80 p-4 active:opacity-85"
                 accessibilityRole="button"
                 accessibilityLabel="Adicionar foto de perfil"
@@ -162,6 +181,9 @@ export function RegisterScreen() {
 
               <Field
                 label="Nome completo ou apelido"
+                error={errors.name}
+                editable={!submitting}
+                autoComplete="name"
                 placeholder="Ex: Jucyara Ferreira"
                 value={name}
                 onChangeText={setName}
@@ -171,6 +193,9 @@ export function RegisterScreen() {
 
               <Field
                 label="Nome de usuário (@gamertag)"
+                error={errors.username}
+                editable={!submitting}
+                autoComplete="username-new"
                 placeholder="susuya"
                 prefix="@"
                 value={username}
@@ -182,6 +207,9 @@ export function RegisterScreen() {
 
               <Field
                 label="E-mail"
+                error={errors.email}
+                editable={!submitting}
+                autoComplete="email"
                 placeholder="seuemail@exemplo.com"
                 value={email}
                 onChangeText={setEmail}
@@ -194,6 +222,10 @@ export function RegisterScreen() {
               <View className="mb-5">
                 <Field
                   label="Senha"
+                  error={errors.password}
+                  editable={!submitting}
+                  autoComplete="new-password"
+                  autoCorrect={false}
                   placeholder="Mínimo 8 caracteres"
                   value={password}
                   onChangeText={setPassword}
@@ -240,6 +272,10 @@ export function RegisterScreen() {
 
               <Field
                 label="Confirmar senha"
+                editable={!submitting}
+                autoComplete="new-password"
+                autoCorrect={false}
+                onSubmitEditing={handleSubmit}
                 placeholder="Digite a senha novamente"
                 value={confirm}
                 onChangeText={setConfirm}
@@ -262,13 +298,14 @@ export function RegisterScreen() {
                   </Pressable>
                 }
               />
-              {!passwordsMatch && (
+              {(!passwordsMatch || errors.confirm) && (
                 <Text className="-mt-3 mb-4 text-[13px] text-red-400">
                   As senhas não coincidem.
                 </Text>
               )}
 
               <Pressable
+                disabled={submitting}
                 onPress={() => setAccepted((v) => !v)}
                 className="mb-7 mt-1 flex-row items-start"
                 accessibilityRole="checkbox"
@@ -296,9 +333,13 @@ export function RegisterScreen() {
                 </Text>
               </Pressable>
 
+              {errors.accepted && <Text accessibilityRole="alert" className="mb-4 text-sm text-red-400">{errors.accepted}</Text>}
+              {error && <Text accessibilityRole="alert" className="mb-4 text-sm text-red-400">{error}</Text>}
+              {notice && <Text accessibilityRole="alert" className="mb-4 text-sm text-[#9CA3AF]">{notice}</Text>}
               <Pressable
                 onPress={handleSubmit}
                 disabled={!canSubmit}
+                accessibilityState={{ disabled: submitting, busy: submitting }}
                 className={`h-[54px] w-full items-center justify-center rounded-full bg-blue-600 active:opacity-85 ${
                   canSubmit ? "" : "opacity-50"
                 }`}
@@ -306,7 +347,7 @@ export function RegisterScreen() {
                 accessibilityLabel="Criar minha conta"
               >
                 <Text className="text-base font-bold text-white">
-                  Criar minha conta
+                  {submitting ? 'Criando conta…' : 'Criar minha conta'}
                 </Text>
               </Pressable>
 
@@ -315,7 +356,8 @@ export function RegisterScreen() {
                   Já tem uma conta?{" "}
                 </Text>
                 <Pressable
-                  onPress={() => router.replace("/login")}
+                  onPress={() => router.replace('/login')}
+                  disabled={submitting}
                   hitSlop={8}
                   accessibilityRole="link"
                 >

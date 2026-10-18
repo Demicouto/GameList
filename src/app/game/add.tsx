@@ -4,7 +4,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
   Modal,
@@ -21,17 +21,13 @@ import {
 } from "react-native-safe-area-context";
 import { SelectField, type SelectOption } from "../../components/SelectField";
 import { useGames } from "../../context/GamesContext";
-import type { GamePlatform, GameStatus } from "../../data/games";
+import type { Game, GameStatus } from "../../types/game";
+import { useLibraryGame } from "../../hooks/useLibraryGame";
+import { GamesFeedback } from "../../components/GamesFeedback";
+import { ApiError } from "../../services/api";
+import { isLocalCoverUri } from "../../services/local-covers";
+import { findGamePreset, type GamePreset } from "../../data/game-presets";
 
-const PLATFORMS: SelectOption<GamePlatform>[] = [
-  { value: "PS5", label: "PlayStation 5" },
-  { value: "PS4", label: "PlayStation 4" },
-  { value: "Xbox Series X|S", label: "Xbox Series X|S" },
-  { value: "Xbox One", label: "Xbox One" },
-  { value: "Switch", label: "Nintendo Switch" },
-  { value: "PC", label: "PC" },
-  { value: "Mobile", label: "Mobile" },
-];
 const COVER_MIME_TYPES = [
   "image/svg+xml",
   "image/png",
@@ -58,25 +54,44 @@ const STATUSES: SelectOption<GameStatus | "none">[] = [
 ];
 
 export default function AddGameScreen() {
+  const { editId, presetId } = useLocalSearchParams<{ editId?: string; presetId?: string }>();
+  const { loading, error, reload, revision } = useGames();
+  const record = useLibraryGame(editId);
+  if (loading || error || editId && (record.loading || record.error || !record.game)) {
+    return <SafeAreaView className="flex-1 bg-[#0A0D14]">
+      <GamesFeedback loading={loading || record.loading} error={error ?? record.error} retry={editId ? record.retry : () => void reload()} />
+      {editId && record.missing && <Text className="text-center text-base text-white">Jogo não encontrado</Text>}
+    </SafeAreaView>;
+  }
+  const preset = editId ? undefined : findGamePreset(presetId);
+  return <GameForm key={`${revision}:${editId ?? preset?.id ?? "new"}`} existingGame={record.game} preset={preset} />;
+}
+
+function GameForm({ existingGame, preset }: { existingGame?: Game; preset?: GamePreset }) {
   const router = useRouter();
-  const { editId } = useLocalSearchParams<{ editId?: string }>();
   const insets = useSafeAreaInsets();
-  const { games, addGame, updateGame } = useGames();
-  const existingGame = games.find((game) => game.id === editId);
-  const [name, setName] = useState(existingGame?.title ?? "");
-  const [platform, setPlatform] = useState<GamePlatform | "">(
-    existingGame?.platform ?? "",
+  const { platforms, addGame, updateGame, warning, reload } = useGames();
+  const [name, setName] = useState(existingGame?.title ?? preset?.title ?? "");
+  const [platform, setPlatform] = useState<number | "">(
+    existingGame?.platformId ?? "",
   );
-  const [genre, setGenre] = useState(existingGame?.genre ?? "");
+  const [genre, setGenre] = useState(existingGame?.genre ?? preset?.genre ?? "");
   const [status, setStatus] = useState<GameStatus | "none">(
     existingGame ? (existingGame.status ?? "none") : "wishlist",
   );
   const [cover, setCover] = useState<ImageSource | undefined>(
-    existingGame?.cover,
+    existingGame?.cover ?? preset?.cover,
+  );
+  const [coverReference, setCoverReference] = useState<string | null | undefined>(
+    existingGame?.localCoverReference ?? (preset ? `preset:${preset.id}` : undefined),
   );
   const [coverMenu, setCoverMenu] = useState(false);
   const [coverError, setCoverError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const saving = useRef(false);
   const nameInput = useRef<TextInput>(null);
 
@@ -100,6 +115,7 @@ export default function AddGameScreen() {
       return;
     }
     setCover({ uri });
+    setCoverReference(uri);
   }
 
   async function pickCoverFile() {
@@ -140,45 +156,27 @@ export default function AddGameScreen() {
     }
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     setSubmitted(true);
     if (!name.trim()) {
       nameInput.current?.focus();
       return;
     }
     if (!platform || (!genre && !existingGame) || saving.current) return;
-    if (editId && !existingGame) {
-      setCoverError("Este jogo não está mais disponível para edição.");
-      return;
-    }
     saving.current = true;
-    if (existingGame) {
-      updateGame(existingGame.id, {
-        title: name.trim(),
-        platform,
-        genre: genre || undefined,
-        tags: genre !== existingGame.genre ? undefined : existingGame.tags,
-        status: status === "none" ? undefined : status,
-        cover,
-      });
-      if (router.canGoBack()) router.back();
-      else
-        router.replace({
-          pathname: "/game/[gamesid]",
-          params: { gamesid: existingGame.id },
-        });
-      return;
-    }
-    addGame({
-      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      title: name.trim(),
-      developer: "",
-      platform,
-      genre,
-      status: status === "none" ? undefined : status,
-      cover,
-    });
-    router.replace("/games");
+    setBusy(true); setError(null);
+    const uri = typeof cover === "string" ? cover : cover?.uri;
+    const localCover = coverReference !== undefined ? coverReference : uri && isLocalCoverUri(uri) ? uri : cover ? undefined : null;
+    const data = { title: name.trim(), platformId: platform, genre: genre || null,
+      ...(preset ? { developer: preset.developer } : {}),
+      status: status === "none" ? null : status, localCover,
+      ...(!cover ? { coverUrl: null } : {}) };
+    try {
+      const saved = existingGame ? await updateGame(existingGame.id, data) : await addGame(data);
+      if (mounted.current) router.replace({ pathname: "/game/[gamesid]", params: { gamesid: saved.id } });
+    } catch (failure) {
+      if (mounted.current) setError(failure instanceof ApiError ? failure.message : "Não foi possível salvar o jogo. Tente novamente.");
+    } finally { saving.current = false; if (mounted.current) setBusy(false); }
   }
 
   return (
@@ -219,6 +217,8 @@ export default function AddGameScreen() {
                 ? "Atualize as informações do seu jogo."
                 : "Registre um novo jogo na sua biblioteca."}
             </Text>
+
+            {preset && <Text className="mt-3 text-sm text-sky-400">Predefinido: {preset.title} · {preset.developer}. Escolha a plataforma antes de salvar.</Text>}
 
             <Pressable
               onPress={() => setCoverMenu(true)}
@@ -263,6 +263,13 @@ export default function AddGameScreen() {
                 {coverError}
               </Text>
             )}
+            <Text className="mb-4 text-xs leading-5 text-[#9CA3AF]">Capas escolhidas ficam somente neste dispositivo e não são enviadas ao servidor.</Text>
+            {warning && <Text accessibilityRole="alert" className="mb-4 text-sm text-amber-400">{warning}</Text>}
+            {platforms.length === 0 && <View className="mb-4 gap-3">
+              <Text accessibilityRole="alert" className="text-sm text-amber-400">Nenhuma plataforma disponível.</Text>
+              <Pressable onPress={() => void reload()} accessibilityRole="button"><Text className="text-blue-400">Recarregar plataformas</Text></Pressable>
+            </View>}
+            {error && <Text accessibilityRole="alert" className="mb-4 text-sm text-red-400">{error}</Text>}
 
             <View className="gap-3.5">
               <View className="gap-1.5">
@@ -274,6 +281,7 @@ export default function AddGameScreen() {
                 </Text>
                 <TextInput
                   ref={nameInput}
+                  editable={!busy}
                   value={name}
                   onChangeText={setName}
                   accessibilityLabel="Nome do jogo"
@@ -297,7 +305,8 @@ export default function AddGameScreen() {
               <SelectField
                 label="Plataforma"
                 value={platform}
-                options={PLATFORMS}
+                options={platforms.map(item => ({ value: item.id, label: item.name }))}
+                disabled={busy}
                 onChange={setPlatform}
                 error={
                   submitted && !platform ? "Selecione a plataforma." : undefined
@@ -305,6 +314,7 @@ export default function AddGameScreen() {
               />
               <SelectField
                 label="Gênero"
+                disabled={busy}
                 value={genre}
                 options={GENRES}
                 onChange={setGenre}
@@ -316,6 +326,7 @@ export default function AddGameScreen() {
               />
               <SelectField
                 label="Status"
+                disabled={busy}
                 value={status}
                 options={STATUSES}
                 onChange={setStatus}
@@ -324,11 +335,14 @@ export default function AddGameScreen() {
 
             <Pressable
               onPress={handleSubmit}
+              disabled={busy || platforms.length === 0}
+              accessibilityLabel={existingGame ? "Salvar alterações" : "Adicionar à biblioteca"}
+              accessibilityState={{ disabled: busy || platforms.length === 0, busy }}
               accessibilityRole="button"
               className="mt-7 min-h-[52px] items-center justify-center rounded-xl bg-blue-600 px-4 py-3.5 active:opacity-85"
             >
               <Text className="text-sm font-bold text-white">
-                {existingGame ? "Salvar alterações" : "Adicionar à biblioteca"}
+                {busy ? "Salvando…" : existingGame ? "Salvar alterações" : "Adicionar à biblioteca"}
               </Text>
             </Pressable>
           </ScrollView>
@@ -382,6 +396,7 @@ export default function AddGameScreen() {
               <Pressable
                 onPress={() => {
                   setCover(undefined);
+                  setCoverReference(null);
                   setCoverMenu(false);
                 }}
                 accessibilityRole="button"

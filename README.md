@@ -35,7 +35,7 @@ As 6 telas previstas para a primeira entrega estão relacionadas abaixo, com seu
 | Criar Conta | Formulário e validações em `src/app/(auth)/register.tsx`; cadastro simulado. |
 | Início | Implementada em `src/app/(tabs)/home.tsx`. |
 | Adicionar Jogo | Implementada em `src/app/game/add.tsx`, também utilizada para editar. |
-| Detalhes do Jogo | Implementada em `src/app/game/[id].tsx`. |
+| Detalhes do Jogo | Implementada em `src/app/game/[gamesid].tsx`. |
 
 ## 🎨 Interface
 
