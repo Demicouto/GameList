@@ -24,18 +24,21 @@ Os status disponíveis são **Quero jogar**, **Jogando**, **Pausado** e **Conclu
 
 Descobrir jogos, visualizar o perfil e acessar configurações também permanecem planejados. Não há integração com API externa, banco de dados ou persistência da biblioteca entre execuções.
 
-##  Telas
+## Telas atuais
 
-As 6 telas previstas para a primeira entrega estão relacionadas abaixo, com seu estado atual:
-
-| Tela prevista | Estado no projeto |
+| Tela | Estado no projeto |
 | --- | --- |
-| Boas-vindas | Implementada em `src/app/index.tsx`, usando `WelcomeScreen`. |
-| Entrar (Login) | Formulário e navegação em `src/app/(auth)/login.tsx`; acesso simulado. |
-| Criar Conta | Formulário e validações em `src/app/(auth)/register.tsx`; cadastro simulado. |
-| Início | Implementada em `src/app/(tabs)/home.tsx`. |
-| Adicionar Jogo | Implementada em `src/app/game/add.tsx`, também utilizada para editar. |
-| Detalhes do Jogo | Implementada em `src/app/game/[id].tsx`. |
+| Boas-vindas | Implementada em `src/app/index.tsx`. |
+| Entrar (Login) | Formulário com validações locais; autenticação simulada em `src/app/(auth)/login.tsx`. |
+| Criar Conta | Formulário com validações locais; cadastro simulado em `src/app/(auth)/register.tsx`. |
+| Início | Implementada em `src/app/(tabs)/home.tsx`, com resumo, jogos em destaque e conquistas demonstrativas. |
+| Meus jogos | Lista de jogos implementada em `src/app/(tabs)/games.tsx`. |
+| Adicionar jogo | Implementada em `src/app/game/add.tsx`. |
+| Editar jogo | Usa `src/app/game/add.tsx` para editar um jogo existente. |
+| Detalhes do jogo | Implementada em `src/app/game/[gamesid].tsx`. |
+| Biblioteca | Rota existente em `src/app/(tabs)/library.tsx`, ainda sem conteúdo. |
+| Descobrir | Rota existente em `src/app/(tabs)/search.tsx`, ainda sem conteúdo. |
+| Perfil | Rota existente em `src/app/(tabs)/profile.tsx`, ainda sem conteúdo. |
 
 ## 🎨 Interface
 
@@ -91,6 +94,10 @@ Para verificar a tipagem do projeto:
 npm run typecheck
 ```
 
+## Repositório do backend
+
+[Repositório do backend](https://github.com/JucyaraFerreira/game-list-backend)
+
 ##  Casos de uso
 
 O escopo da primeira entrega contempla:
@@ -102,7 +109,10 @@ O escopo da primeira entrega contempla:
 5. Adicionar Jogo.
 6. Visualizar Detalhes do Jogo.
 7. Editar Jogo.
-
+8. Visualizar Biblioteca.
+9. Descobrir jogos — planejado.
+10. Visualizar perfil — planejado.
+11. Visualizar configurações — planejado.
 
 O [diagrama de casos de uso em PlantUML](docs/casosdeuso.puml) representa esse escopo, incluindo os itens ainda pendentes.
 

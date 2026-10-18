@@ -2,7 +2,7 @@
 
 ' ==============================
 ' GameList - Casos de Uso
-' Entrega 01
+' Entrega 02
 ' ==============================
 
 left to right direction
@@ -33,21 +33,22 @@ skinparam rectangle {
 skinparam ArrowColor #60A5FA
 skinparam ArrowThickness 1.5
 
-title <color:#FFFFFF><size:20><b>GAME LIST</b></size></color>\n<color:#94A3B8>Diagrama de Casos de Uso — Entrega 01</color>
-
+title <color:#FFFFFF><size:20><b>GAME LIST</b></size></color>\n<color:#94A3B8>Diagrama de Casos de Uso — Entrega 02</color>
 
 actor "Usuário" as Usuario
 
-
 rectangle "GameList" {
-
-    usecase "Acessar Boas-vindas" as UC01
+    usecase "Acessar boas-vindas" as UC01
     usecase "Cadastrar-se" as UC02
-    usecase "Realizar Login" as UC03
-    usecase "Visualizar Início" as UC04
-    usecase "Adicionar Jogo" as UC05
-    usecase "Visualizar Detalhes\ndo Jogo" as UC06
-    usecase "Editar Jogo" as UC07
+    usecase "Realizar login" as UC03
+    usecase "Visualizar início" as UC04
+    usecase "Adicionar jogo" as UC05
+    usecase "Visualizar detalhes\ndo jogo" as UC06
+    usecase "Editar jogo" as UC07
+    usecase "Visualizar biblioteca" as UC08
+    usecase "Descobrir jogos" as UC09
+    usecase "Visualizar perfil" as UC10
+    usecase "Visualizar configurações" as UC11
 }
 
 Usuario --> UC01
@@ -57,14 +58,22 @@ Usuario --> UC04
 Usuario --> UC05
 Usuario --> UC06
 Usuario --> UC07
+Usuario --> UC08
+Usuario --> UC09
+Usuario --> UC10
+Usuario --> UC11
+
+UC01 -[hidden]right- UC05
+UC05 -[hidden]right- UC09
+UC02 -[hidden]right- UC06
+UC06 -[hidden]right- UC10
+UC03 -[hidden]right- UC07
+UC07 -[hidden]right- UC11
+UC04 -[hidden]right- UC08
 
 UC01 -[hidden]down- UC02
 UC02 -[hidden]down- UC03
 UC03 -[hidden]down- UC04
-
-UC04 -[hidden]down- UC05
-UC05 -[hidden]down- UC06
-UC06 -[hidden]down- UC07
 
 legend bottom
     <color:#FFFFFF><b>GameList</b></color>
