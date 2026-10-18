@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
+import { SessionGate } from "../../auth/SessionGate";
 
 export default function TabsLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <SessionGate><Stack screenOptions={{ headerShown: false }} /></SessionGate>;
 }

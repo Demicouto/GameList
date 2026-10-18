@@ -1,8 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
-import type { Game, GameStatus } from "../data/games";
+import type { Game, GameStatus } from "../types/game";
+import { GameCover } from "./GameCover";
 
 type BadgeKey = GameStatus | "favorite";
 type BadgeConfig = { box: string; icon: ReactNode };
@@ -59,28 +59,13 @@ export function GameCard({
       style={{ width }}
       className="active:opacity-85"
       accessibilityRole="button"
-      accessibilityLabel={`${game.title}, ${game.developer}. Abrir detalhes`}
+      accessibilityLabel={`${game.title}, ${game.developer || game.genre || game.platform}. Abrir detalhes`}
     >
       <View
         style={{ width, aspectRatio: 3 / 4 }}
         className="overflow-hidden rounded-3xl bg-[#1C2029]"
       >
-        {game.cover ? (
-          <Image
-            source={game.cover}
-            contentFit="cover"
-            style={{ width: "100%", height: "100%" }}
-            accessible={false}
-          />
-        ) : (
-          <View className="flex-1 items-center justify-center">
-            <Ionicons
-              name="game-controller-outline"
-              size={44}
-              color="#454E60"
-            />
-          </View>
-        )}
+        <GameCover cover={game.cover} coverUrl={game.coverUrl} />
 
         <View
           style={{

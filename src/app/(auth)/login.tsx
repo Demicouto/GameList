@@ -1,7 +1,10 @@
-import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { ApiError } from "../../services/api";
+import { passwordBytes } from "../../auth/password-policy";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -97,16 +100,36 @@ function SocialIcon({ name }: { name: (typeof SOCIALS)[number]["key"] }) {
 export function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const auth = useAuth();
+  const params = useLocalSearchParams();
 
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const pending = useRef(false);
 
-  const canSubmit = login.trim().length > 0 && password.length > 0;
+  const canSubmit = !submitting;
 
-  function handleSubmit() {
-    if (!canSubmit) return;
-    router.replace("/home");
+  async function handleSubmit() {
+    if (pending.current) return;
+    setError(null);
+    setNotice(null);
+    if (!login.trim() || login.trim().length > 254 || !password || passwordBytes(password) > 72) {
+      setError('Informe seu e-mail ou usuário (até 254 caracteres) e sua senha (até 72 bytes UTF-8).');
+      return;
+    }
+    pending.current = true;
+    setSubmitting(true);
+    try {
+      await auth.login({ identifier: login.trim().toLowerCase(), password });
+      setPassword('');
+      // AuthLayout redirects only after the session has been saved and confirmed.
+    } catch (error) {
+      setError(error instanceof ApiError ? error.message : 'Não foi possível entrar. Tente novamente.');
+    } finally { pending.current = false; setSubmitting(false); }
   }
 
   return (
@@ -131,7 +154,7 @@ export function LoginScreen() {
             <View className="mx-auto w-full max-w-[480px] flex-1 justify-between">
               <View>
                 <Pressable
-                  onPress={() => router.back()}
+                  onPress={() => router.canGoBack() ? router.back() : router.replace("/")}
                   className="h-11 w-11 items-center justify-center rounded-full border border-[#252C3C] bg-[#181D28] active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Voltar"
@@ -151,6 +174,9 @@ export function LoginScreen() {
                 </Text>
                 <Field
                   icon="person-outline"
+                  accessibilityLabel="E-mail ou nome de usuário"
+                  editable={!submitting}
+                  autoComplete="username"
                   placeholder="ex: seuemail@exemplo.com"
                   value={login}
                   onChangeText={setLogin}
@@ -164,7 +190,8 @@ export function LoginScreen() {
                   <Text className="text-[13px] font-medium uppercase tracking-[0.6px] text-[#E5E7EB]">
                     Senha
                   </Text>
-                  <Pressable hitSlop={8} accessibilityRole="link">
+                  <Pressable hitSlop={8} accessibilityRole="link"
+                    onPress={() => setNotice('Recuperação de senha ainda não disponível.')}>
                     <Text className="text-sm font-medium text-blue-400">
                       Esqueceu a senha?
                     </Text>
@@ -172,6 +199,10 @@ export function LoginScreen() {
                 </View>
                 <Field
                   icon="lock-closed-outline"
+                  accessibilityLabel="Senha"
+                  editable={!submitting}
+                  autoComplete="current-password"
+                  autoCorrect={false}
                   placeholder="••••••••"
                   value={password}
                   onChangeText={setPassword}
@@ -197,9 +228,17 @@ export function LoginScreen() {
                   }
                 />
 
+                {params.registered === '1' && (
+                  <Text accessibilityRole="alert" className="mt-4 text-sm text-green-400">
+                    Solicitação processada. Tente entrar com seus dados.
+                  </Text>
+                )}
+                {error && <Text accessibilityRole="alert" className="mt-4 text-sm text-red-400">{error}</Text>}
+                {notice && <Text accessibilityRole="alert" className="mt-4 text-sm text-[#9CA3AF]">{notice}</Text>}
                 <Pressable
                   onPress={handleSubmit}
                   disabled={!canSubmit}
+                  accessibilityState={{ disabled: submitting, busy: submitting }}
                   className={`mt-6 h-[54px] w-full flex-row items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/40 active:opacity-85 ${
                     canSubmit ? "" : "opacity-50"
                   }`}
@@ -207,7 +246,7 @@ export function LoginScreen() {
                   accessibilityLabel="Entrar na conta"
                 >
                   <Text className="mr-2 text-base font-bold text-white">
-                    Entrar na conta
+                    {submitting ? 'Entrando…' : 'Entrar na conta'}
                   </Text>
                   <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
                 </Pressable>
@@ -224,6 +263,7 @@ export function LoginScreen() {
                   {SOCIALS.map((s) => (
                     <Pressable
                       key={s.key}
+                      onPress={() => setNotice(`Login com ${s.label} ainda não disponível.`)}
                       className="h-12 flex-1 items-center justify-center rounded-2xl border border-[#212738] bg-[#141822] active:opacity-80"
                       accessibilityRole="button"
                       accessibilityLabel={`Continuar com ${s.label}`}
@@ -239,7 +279,8 @@ export function LoginScreen() {
                   Não tem uma conta?{" "}
                 </Text>
                 <Pressable
-                  onPress={() => router.replace("/register")}
+                  onPress={() => router.replace('/register')}
+                  disabled={submitting}
                   hitSlop={8}
                   accessibilityRole="link"
                 >
