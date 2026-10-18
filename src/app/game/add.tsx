@@ -173,7 +173,7 @@ function GameForm({ existingGame, preset }: { existingGame?: Game; preset?: Game
       ...(!cover ? { coverUrl: null } : {}) };
     try {
       const saved = existingGame ? await updateGame(existingGame.id, data) : await addGame(data);
-      if (mounted.current) router.replace({ pathname: "/game/[id]", params: { id: saved.id } });
+      if (mounted.current) router.replace({ pathname: "/game/[gamesid]", params: { gamesid: saved.id } });
     } catch (failure) {
       if (mounted.current) setError(failure instanceof ApiError ? failure.message : "Não foi possível salvar o jogo. Tente novamente.");
     } finally { saving.current = false; if (mounted.current) setBusy(false); }

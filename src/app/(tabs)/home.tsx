@@ -55,7 +55,7 @@ export function HomeScreen() {
                   <Text numberOfLines={1} className="mt-1 text-[26px] font-extrabold text-white">{featured.title}</Text>
                   <Text className="mt-2 text-sm font-semibold text-[#D1D5DB]">{featured.platform}</Text>
                 </View>
-                <Pressable onPress={() => router.push({ pathname: "/game/[id]", params: { id: featured.id } })}
+                <Pressable onPress={() => router.push({ pathname: "/game/[gamesid]", params: { gamesid: featured.id } })}
                   accessibilityRole="button" accessibilityLabel={`Abrir ${featured.title}`}
                   className="h-14 w-14 items-center justify-center rounded-full bg-blue-500 active:opacity-85">
                   <Ionicons name="arrow-forward" size={24} color="#FFFFFF" />
@@ -77,7 +77,7 @@ export function HomeScreen() {
               <FlatList horizontal data={games} keyExtractor={game => game.id} showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14 }} ItemSeparatorComponent={() => <View style={{ width: 14 }} />}
                 renderItem={({ item }) => <GameCard game={item} width={128}
-                  onPress={() => router.push({ pathname: "/game/[id]", params: { id: item.id } })} onBadgePress={() => setSelectedId(item.id)} />} />
+                  onPress={() => router.push({ pathname: "/game/[gamesid]", params: { gamesid: item.id } })} onBadgePress={() => setSelectedId(item.id)} />} />
             </>}
           </>}
         </ScrollView>

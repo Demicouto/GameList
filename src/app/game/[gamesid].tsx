@@ -21,9 +21,9 @@ const STATUSES: SelectOption<GameStatus | "none">[] = [
 ];
 
 export default function GamePage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { gamesid } = useLocalSearchParams<{ gamesid: string }>();
   const { revision } = useGames();
-  return <GameDetail key={`${revision}:${id}`} id={id} />;
+  return <GameDetail key={`${revision}:${gamesid}`} id={gamesid} />;
 }
 
 function GameDetail({ id }: { id: string }) {

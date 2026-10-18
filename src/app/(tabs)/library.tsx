@@ -170,7 +170,7 @@ export default function LibraryPage() {
             <GameCard
               game={item}
               width={cardWidth}
-              onPress={() => router.push({ pathname: "/game/[id]", params: { id: item.id } })}
+              onPress={() => router.push({ pathname: "/game/[gamesid]", params: { gamesid: item.id } })}
               onBadgePress={() => setSelectedId(item.id)}
             />
           )}

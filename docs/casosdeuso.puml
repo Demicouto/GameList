@@ -1,0 +1,74 @@
+@startuml
+
+' ==============================
+' GameList - Casos de Uso
+' Entrega 01
+' ==============================
+
+left to right direction
+
+skinparam backgroundColor #080D14
+skinparam shadowing false
+skinparam roundcorner 20
+
+skinparam actor {
+    BackgroundColor #111A25
+    BorderColor #3B82F6
+    FontColor #FFFFFF
+}
+
+skinparam usecase {
+    BackgroundColor #111A25
+    BorderColor #3B82F6
+    FontColor #FFFFFF
+    ArrowColor #60A5FA
+}
+
+skinparam rectangle {
+    BackgroundColor #0D141D
+    BorderColor #263445
+    FontColor #FFFFFF
+}
+
+skinparam ArrowColor #60A5FA
+skinparam ArrowThickness 1.5
+
+title <color:#FFFFFF><size:20><b>GAME LIST</b></size></color>\n<color:#94A3B8>Diagrama de Casos de Uso — Entrega 01</color>
+
+
+actor "Usuário" as Usuario
+
+
+rectangle "GameList" {
+
+    usecase "Acessar Boas-vindas" as UC01
+    usecase "Cadastrar-se" as UC02
+    usecase "Realizar Login" as UC03
+    usecase "Visualizar Início" as UC04
+    usecase "Adicionar Jogo" as UC05
+    usecase "Visualizar Detalhes\ndo Jogo" as UC06
+    usecase "Editar Jogo" as UC07
+}
+
+Usuario --> UC01
+Usuario --> UC02
+Usuario --> UC03
+Usuario --> UC04
+Usuario --> UC05
+Usuario --> UC06
+Usuario --> UC07
+
+UC01 -[hidden]down- UC02
+UC02 -[hidden]down- UC03
+UC03 -[hidden]down- UC04
+
+UC04 -[hidden]down- UC05
+UC05 -[hidden]down- UC06
+UC06 -[hidden]down- UC07
+
+legend bottom
+    <color:#FFFFFF><b>GameList</b></color>
+    <color:#94A3B8>Programação para Dispositivos Móveis</color>
+endlegend
+
+@enduml
