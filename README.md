@@ -74,6 +74,11 @@ cd GameList
 # 3. Instalar as dependências do arquivo de lock
 npm ci
 
+# 4. Colocar Variaveis de ambiente .env.example
+
+# Para Web/emulador: use http://localhost:3000
+# Para dispositivo físico de Android:  SEUIP:3000 
+
 # 4. Iniciar o projeto
 npm start
 ```
